@@ -9,22 +9,79 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 });
 
 async function init() {
-  // Get owner name for welcome message
   const meRes = await fetch('/api/me');
   const me = await meRes.json();
-  if (!me.isOwner) {
-    window.location.href = '/login?next=/my-applications';
-    return;
-  }
-  welcomeMsg.textContent = `Here are all the walk slots you've applied for, ${me.ownerName}.`;
 
-  loadApplications();
+  if (me.isOwner) {
+    welcomeMsg.textContent = `Here are all the walk slots you've applied for, ${me.ownerName}.`;
+    loadApplications();
+  } else {
+    showLookupForm();
+  }
 }
 
+// ── Phone lookup form (shown when not yet identified this session) ────────────
+
+function showLookupForm() {
+  welcomeMsg.textContent = 'Enter your phone number to see your applications.';
+  container.innerHTML = `
+    <form id="lookup-form" class="card" novalidate>
+      <div id="lookup-error" class="alert alert-error hidden"></div>
+      <div class="field">
+        <label for="lookup-phone">Phone number</label>
+        <input type="tel" id="lookup-phone" autocomplete="tel" required
+               placeholder="e.g. 07700 900123" autofocus>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="lookup-submit">
+        View my applications
+      </button>
+    </form>`;
+
+  document.getElementById('lookup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorBox = document.getElementById('lookup-error');
+    const submitBtn = document.getElementById('lookup-submit');
+    errorBox.classList.add('hidden');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Looking up…';
+
+    const phone = document.getElementById('lookup-phone').value.trim();
+
+    try {
+      const res = await fetch('/api/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorBox.textContent = data.error || 'Something went wrong';
+        errorBox.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'View my applications';
+        return;
+      }
+
+      welcomeMsg.textContent = `Here are all the walk slots you've applied for, ${data.name}.`;
+      loadApplications();
+    } catch {
+      errorBox.textContent = 'Network error — please try again';
+      errorBox.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'View my applications';
+    }
+  });
+}
+
+// ── Load and render applications ──────────────────────────────────────────────
+
 async function loadApplications() {
+  container.innerHTML = '<p class="loading-text">Loading your applications…</p>';
+
   try {
     const res = await fetch('/api/my-applications');
-    if (res.status === 401) { window.location.href = '/login?next=/my-applications'; return; }
+    if (res.status === 401) { showLookupForm(); return; }
     const apps = await res.json();
     renderApplications(apps);
   } catch {

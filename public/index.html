@@ -31,8 +31,8 @@
           <li>
             <span class="step-num">1</span>
             <div>
-              <strong>Create a free account</strong>
-              <p>Tell us your name, dog's name, and where you're based.</p>
+              <strong>Enter your name and number</strong>
+              <p>No account needed — just your name, phone, dog's name, and rough area.</p>
             </div>
           </li>
           <li>
@@ -64,10 +64,6 @@
       if (me.isOwner) {
         nav.innerHTML = `
           <a href="/my-applications" class="btn btn-ghost btn-sm">My applications</a>`;
-      } else {
-        nav.innerHTML = `
-          <a href="/login" class="btn btn-ghost btn-sm">Log in</a>
-          <a href="/register" class="btn btn-primary btn-sm">Sign up</a>`;
       }
     });
   </script>

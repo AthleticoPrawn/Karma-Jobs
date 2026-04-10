@@ -5,7 +5,7 @@ function requireOwner(req, res, next) {
     if (req.path.startsWith('/api/')) {
       return res.status(401).json({ error: 'Login required' });
     }
-    return res.redirect('/login?next=' + encodeURIComponent(req.originalUrl));
+    return res.redirect('/slots');
   }
   next();
 }

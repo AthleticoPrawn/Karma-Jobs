@@ -7,71 +7,66 @@ const db = require('../db');
 
 const router = express.Router();
 
-// ── Owner registration ──────────────────────────────────────────────────────
+// ── Owner identification (find-or-create, no password) ──────────────────────
+//
+// First-time visitors: provide name, phone, dog_name, address → creates record
+// Returning visitors:  same endpoint, phone is the unique key → reuses record
 
-router.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/register.html'));
-});
+router.post('/api/identify', (req, res) => {
+  const { name, phone, dog_name, address } = req.body;
 
-router.post('/api/register', async (req, res) => {
-  const { name, phone, dog_name, address, password } = req.body;
-
-  if (!name || !phone || !dog_name || !address || !password) {
-    return res.status(400).json({ error: 'All fields are required' });
-  }
-  if (password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  if (!name || !phone || !dog_name || !address) {
+    return res.status(400).json({ error: 'Name, phone number, dog\'s name and area are all required' });
   }
 
-  const existing = db.prepare('SELECT id FROM owners WHERE phone = ?').get(phone.trim());
+  const existing = db.prepare('SELECT * FROM owners WHERE phone = ?').get(phone.trim());
+
   if (existing) {
-    return res.status(409).json({ error: 'An account with that phone number already exists' });
+    // Returning visitor — update their details in case anything changed
+    db.prepare(
+      'UPDATE owners SET name = ?, dog_name = ?, address = ? WHERE phone = ?'
+    ).run(name.trim(), dog_name.trim(), address.trim(), phone.trim());
+
+    req.session.ownerId = existing.id;
+    req.session.ownerName = name.trim();
+    return res.json({ ok: true, isNew: false });
   }
 
-  const password_hash = await bcrypt.hash(password, 10);
+  // New visitor — create a record
   const result = db.prepare(
-    'INSERT INTO owners (name, phone, password_hash, dog_name, address) VALUES (?, ?, ?, ?, ?)'
-  ).run(name.trim(), phone.trim(), password_hash, dog_name.trim(), address.trim());
+    'INSERT INTO owners (name, phone, dog_name, address) VALUES (?, ?, ?, ?)'
+  ).run(name.trim(), phone.trim(), dog_name.trim(), address.trim());
 
   req.session.ownerId = result.lastInsertRowid;
   req.session.ownerName = name.trim();
-  res.json({ ok: true });
+  res.json({ ok: true, isNew: true });
 });
 
-// ── Owner login ─────────────────────────────────────────────────────────────
+// ── Owner lookup by phone (for My Applications page) ───────────────────────
 
-router.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/login.html'));
-});
-
-router.post('/api/login', async (req, res) => {
-  const { phone, password } = req.body;
-  if (!phone || !password) {
-    return res.status(400).json({ error: 'Phone and password are required' });
+router.post('/api/lookup', (req, res) => {
+  const { phone } = req.body;
+  if (!phone) {
+    return res.status(400).json({ error: 'Phone number is required' });
   }
 
   const owner = db.prepare('SELECT * FROM owners WHERE phone = ?').get(phone.trim());
   if (!owner) {
-    return res.status(401).json({ error: 'Incorrect phone number or password' });
-  }
-
-  const match = await bcrypt.compare(password, owner.password_hash);
-  if (!match) {
-    return res.status(401).json({ error: 'Incorrect phone number or password' });
+    return res.status(404).json({ error: 'No applications found for that number' });
   }
 
   req.session.ownerId = owner.id;
   req.session.ownerName = owner.name;
-  res.json({ ok: true });
+  res.json({ ok: true, name: owner.name, dog_name: owner.dog_name });
 });
 
-// ── Owner logout ────────────────────────────────────────────────────────────
+// ── Owner logout ─────────────────────────────────────────────────────────────
 
 router.post('/api/logout', (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
 
-// ── Walker admin login ──────────────────────────────────────────────────────
+// ── Walker admin login ────────────────────────────────────────────────────────
 
 router.get('/admin/login', (req, res) => {
   if (req.session.isWalker) return res.redirect('/admin/');
@@ -98,7 +93,7 @@ router.post('/api/admin/login', async (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Walker admin logout ─────────────────────────────────────────────────────
+// ── Walker admin logout ───────────────────────────────────────────────────────
 
 router.post('/api/admin/logout', (req, res) => {
   req.session.isWalker = false;

@@ -287,6 +287,61 @@ h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
 .slot-actions { display: flex; gap: 0.5rem; flex-shrink: 0; flex-wrap: wrap; }
 .slot-action  { display: flex; align-items: center; flex-shrink: 0; }
 
+/* ── Inline identify form (shown when clicking Apply without a session) ──────── */
+
+.identify-form {
+  width: 100%;
+  padding-top: 0.25rem;
+}
+
+.identify-intro {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 0.625rem;
+}
+
+.identify-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.identify-fields input {
+  padding: 0.4375rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-family: var(--font);
+  width: 100%;
+}
+
+.identify-fields input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}
+
+.identify-error {
+  color: #991b1b;
+  background: var(--red-light);
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  padding: 0.375rem 0.625rem;
+  margin-bottom: 0.5rem;
+}
+
+.identify-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .identify-fields { grid-template-columns: 1fr; }
+  .identify-actions .btn { flex: 1; justify-content: center; }
+}
+
 /* ── Day groups (public slots page) ────────────────────────────────────────── */
 
 .day-group { margin-bottom: 2rem; }

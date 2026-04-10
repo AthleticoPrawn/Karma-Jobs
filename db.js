@@ -14,7 +14,6 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     phone TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
     dog_name TEXT NOT NULL,
     address TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
