@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Slots — Karma Dog Walks</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="page-wrap">
+    <header class="site-header">
+      <a href="/admin/" class="logo">🐾 Karma Dog Walks</a>
+      <nav class="nav">
+        <span class="nav-label">Walker admin</span>
+        <button id="logout-btn" class="btn btn-ghost btn-sm">Log out</button>
+      </nav>
+    </header>
+
+    <main>
+      <div class="page-title-row">
+        <h1>Walk slots</h1>
+        <button class="btn btn-primary" id="new-slot-btn">+ New slot</button>
+      </div>
+
+      <!-- Create / Edit form (hidden by default) -->
+      <div id="slot-form-wrap" class="card hidden">
+        <h2 id="slot-form-title">New slot</h2>
+        <form id="slot-form" novalidate>
+          <input type="hidden" id="edit-slot-id">
+          <div class="field-row">
+            <div class="field">
+              <label for="slot-date">Date</label>
+              <input type="date" id="slot-date" required>
+            </div>
+            <div class="field">
+              <label for="slot-time">Start time</label>
+              <input type="time" id="slot-time" required>
+            </div>
+            <div class="field">
+              <label for="slot-duration">Duration</label>
+              <select id="slot-duration">
+                <option value="30">30 min</option>
+                <option value="45">45 min</option>
+                <option value="60" selected>1 hour</option>
+                <option value="90">1.5 hours</option>
+                <option value="120">2 hours</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="slot-notes">Notes <span class="optional">(optional)</span></label>
+            <input type="text" id="slot-notes" placeholder="e.g. Platt Fields area, dry weather only">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="slot-form-submit">Save slot</button>
+            <button type="button" class="btn btn-ghost" id="slot-form-cancel">Cancel</button>
+          </div>
+          <div id="slot-form-error" class="alert alert-error hidden"></div>
+        </form>
+      </div>
+
+      <!-- Slots table -->
+      <div id="slots-container">
+        <p class="loading-text">Loading slots…</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/admin-slots.js"></script>
+</body>
+</html>

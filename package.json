@@ -1,0 +1,17 @@
+{
+  "name": "karma-jobs",
+  "version": "1.0.0",
+  "description": "Dog walking booking app — community slot management for walkers and owners",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^9.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0"
+  }
+}

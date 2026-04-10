@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karma Dog Walks</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="page-wrap narrow">
+    <header class="site-header">
+      <a href="/" class="logo">🐾 Karma Dog Walks</a>
+      <nav class="nav" id="nav-area"></nav>
+    </header>
+
+    <main class="hero">
+      <div class="hero-content">
+        <h1>Free dog walks,<br>fairly allocated</h1>
+        <p class="hero-sub">
+          We're a pair of local dog walkers offering free occasional walks to dogs in the area.
+          Browse our available slots, apply for one, and we'll let you know if you're chosen.
+        </p>
+        <div class="hero-actions">
+          <a href="/slots" class="btn btn-primary btn-lg">See available walks</a>
+        </div>
+      </div>
+
+      <div class="how-it-works">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li>
+            <span class="step-num">1</span>
+            <div>
+              <strong>Create a free account</strong>
+              <p>Tell us your name, dog's name, and where you're based.</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <div>
+              <strong>Apply for a walk slot</strong>
+              <p>Browse our available times and put yourself forward.</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <div>
+              <strong>We confirm your walk</strong>
+              <p>We review applicants and confirm one dog per slot. Check your applications page to see your status.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <a href="/admin/login" class="subtle-link">Walker login</a>
+    </footer>
+  </div>
+
+  <script>
+    fetch('/api/me').then(r => r.json()).then(me => {
+      const nav = document.getElementById('nav-area');
+      if (me.isOwner) {
+        nav.innerHTML = `
+          <a href="/my-applications" class="btn btn-ghost btn-sm">My applications</a>`;
+      } else {
+        nav.innerHTML = `
+          <a href="/login" class="btn btn-ghost btn-sm">Log in</a>
+          <a href="/register" class="btn btn-primary btn-sm">Sign up</a>`;
+      }
+    });
+  </script>
+</body>
+</html>
