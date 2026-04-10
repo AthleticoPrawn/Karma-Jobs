@@ -5,6 +5,19 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const bcrypt = require('bcrypt');
+
+// If WALKER_PASSWORD_HASH is a plain text password (not already a bcrypt hash),
+// hash it in memory on startup so walkers can paste their password directly
+// into Railway without a pre-hashing step.
+async function prepareWalkerPassword() {
+  const val = process.env.WALKER_PASSWORD_HASH;
+  if (!val) return;
+  if (!val.startsWith('$2b$') && !val.startsWith('$2a$')) {
+    process.env.WALKER_PASSWORD_HASH = await bcrypt.hash(val, 10);
+    console.log('Walker password hashed on startup.');
+  }
+}
 
 const authRoutes = require('./routes/auth');
 const slotsRoutes = require('./routes/slots');
@@ -67,6 +80,8 @@ app.use((req, res) => {
 // ── Start ─────────────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Karma Jobs running at http://localhost:${PORT}`);
+prepareWalkerPassword().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Karma Jobs running at http://localhost:${PORT}`);
+  });
 });
