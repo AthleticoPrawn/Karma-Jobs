@@ -91,6 +91,7 @@ function renderApplicants(slot, applicants) {
             <span>📞 <a href="tel:${escHtml(app.phone)}">${escHtml(app.phone)}</a></span>
             ${app.proposed_time ? `<span>🕐 Prefers ${formatTime(app.proposed_time)}</span>` : ''}
           </div>
+          ${app.message ? `<div class="applicant-message">"${escHtml(app.message)}"</div>` : ''}
           <div class="applicant-meta">Applied: ${new Date(app.applied_at).toLocaleString('en-GB')}</div>
         </div>
         <div class="applicant-action" id="app-action-${app.application_id}">

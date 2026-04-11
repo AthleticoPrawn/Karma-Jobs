@@ -153,6 +153,9 @@ function showIdentifyForm(slotId) {
         ${hasRange ? `<input type="time" name="proposed_time" required min="${slotCard.dataset.startTime}" max="${slotCard.dataset.endTime}">
         <small class="identify-time-hint">Your preferred start time</small>` : ''}
       </div>
+      <div class="identify-fields identify-fields-full">
+        <textarea name="message" placeholder="Anything you'd like us to know? (optional)" rows="2"></textarea>
+      </div>
       <div class="identify-error hidden"></div>
       <div class="identify-actions">
         <button type="submit" class="btn btn-primary">Apply</button>
@@ -188,6 +191,8 @@ document.addEventListener('submit', async (e) => {
 
   const proposedTimeEl = form.querySelector('[name="proposed_time"]');
   const proposedTime = proposedTimeEl ? proposedTimeEl.value : null;
+  const messageEl = form.querySelector('[name="message"]');
+  const message = messageEl ? messageEl.value.trim() : null;
 
   try {
     if (!currentUser.isOwner) {
@@ -227,8 +232,8 @@ document.addEventListener('submit', async (e) => {
       });
     }
 
-    // Step 2: apply (with optional proposed time)
-    await doApply(slotId, proposedTime);
+    // Step 2: apply (with optional proposed time and message)
+    await doApply(slotId, proposedTime, message);
   } catch {
     errorDiv.textContent = 'Network error — please try again';
     errorDiv.classList.remove('hidden');
@@ -237,7 +242,7 @@ document.addEventListener('submit', async (e) => {
   }
 });
 
-async function doApply(slotId, proposedTime) {
+async function doApply(slotId, proposedTime, message) {
   const actionDiv = document.getElementById(`action-${slotId}`);
   actionDiv.innerHTML = `<span class="badge badge-yellow">Applying…</span>`;
 
@@ -245,7 +250,7 @@ async function doApply(slotId, proposedTime) {
     const res = await fetch(`/api/slots/${slotId}/apply`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ proposed_time: proposedTime || null })
+      body: JSON.stringify({ proposed_time: proposedTime || null, message: message || null })
     });
     const data = await res.json();
 

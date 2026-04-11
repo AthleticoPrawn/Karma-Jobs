@@ -88,6 +88,7 @@ router.get('/api/slots/:id/applicants', (req, res) => {
       a.status,
       a.applied_at,
       a.proposed_time,
+      a.message,
       o.id AS owner_id,
       o.name,
       o.phone,

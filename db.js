@@ -44,5 +44,6 @@ db.exec(`
 // Migrations for existing databases
 try { db.exec('ALTER TABLE slots ADD COLUMN end_time TEXT'); } catch {}
 try { db.exec('ALTER TABLE applications ADD COLUMN proposed_time TEXT'); } catch {}
+try { db.exec('ALTER TABLE applications ADD COLUMN message TEXT'); } catch {}
 
 module.exports = db;

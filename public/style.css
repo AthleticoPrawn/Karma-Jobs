@@ -322,6 +322,35 @@ h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
   box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
 }
 
+.identify-fields-full {
+  grid-template-columns: 1fr;
+  margin-top: 0.25rem;
+}
+
+.identify-fields-full textarea {
+  padding: 0.4375rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-family: var(--font);
+  width: 100%;
+  resize: vertical;
+}
+
+.identify-fields-full textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}
+
+.applicant-message {
+  font-size: 0.875rem;
+  color: var(--text);
+  font-style: italic;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
 .identify-time-hint {
   grid-column: 1 / -1;
   font-size: 0.8125rem;
