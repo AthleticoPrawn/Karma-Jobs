@@ -41,6 +41,7 @@ slotForm.addEventListener('submit', async (e) => {
   const payload = {
     date: document.getElementById('slot-date').value,
     start_time: document.getElementById('slot-time').value,
+    end_time: document.getElementById('slot-end-time').value || null,
     duration_minutes: document.getElementById('slot-duration').value,
     notes: document.getElementById('slot-notes').value.trim()
   };
@@ -83,7 +84,6 @@ async function loadSlots() {
 }
 
 function formatDate(dateStr) {
-  // dateStr is YYYY-MM-DD
   const [year, month, day] = dateStr.split('-').map(Number);
   return new Date(year, month - 1, day).toLocaleDateString('en-GB', {
     weekday: 'short', day: 'numeric', month: 'long', year: 'numeric'
@@ -96,6 +96,10 @@ function formatTime(timeStr) {
   const ampm = hour >= 12 ? 'pm' : 'am';
   const display = hour % 12 || 12;
   return `${display}:${m}${ampm}`;
+}
+
+function formatTimeRange(start, end) {
+  return end ? `${formatTime(start)} – ${formatTime(end)}` : formatTime(start);
 }
 
 function renderSlots(slots) {
@@ -116,7 +120,7 @@ function renderSlots(slots) {
           <div class="slot-info">
             <div class="slot-datetime">
               <strong>${formatDate(slot.date)}</strong>
-              <span>${formatTime(slot.start_time)} &bull; ${slot.duration_minutes} min</span>
+              <span>${formatTimeRange(slot.start_time, slot.end_time)} &bull; ${slot.duration_minutes} min walk</span>
             </div>
             ${slot.notes ? `<div class="slot-notes">${escHtml(slot.notes)}</div>` : ''}
           </div>
@@ -129,7 +133,7 @@ function renderSlots(slots) {
             </a>
           </div>
           <div class="slot-actions">
-            <button class="btn btn-ghost btn-sm" onclick="editSlot(${slot.id}, '${slot.date}', '${slot.start_time}', ${slot.duration_minutes}, ${JSON.stringify(escHtml(slot.notes || ''))})">Edit</button>
+            <button class="btn btn-ghost btn-sm" onclick="editSlot(${slot.id}, '${slot.date}', '${slot.start_time}', '${slot.end_time || ''}', ${slot.duration_minutes}, ${JSON.stringify(escHtml(slot.notes || ''))})">Edit</button>
             <button class="btn btn-danger btn-sm" onclick="deleteSlot(${slot.id})">Delete</button>
           </div>
         </div>`;
@@ -140,17 +144,18 @@ function renderSlots(slots) {
 }
 
 function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Edit slot ───────────────────────────────────────────────────────────────
 
-window.editSlot = function(id, date, time, duration, notes) {
+window.editSlot = function(id, date, startTime, endTime, duration, notes) {
   slotFormTitle.textContent = 'Edit slot';
   slotFormSubmit.textContent = 'Save changes';
   editSlotId.value = id;
   document.getElementById('slot-date').value = date;
-  document.getElementById('slot-time').value = time;
+  document.getElementById('slot-time').value = startTime;
+  document.getElementById('slot-end-time').value = endTime;
   document.getElementById('slot-duration').value = duration;
   document.getElementById('slot-notes').value = notes;
   slotFormError.classList.add('hidden');

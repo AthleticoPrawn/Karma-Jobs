@@ -33,14 +33,14 @@ router.get('/api/slots', (req, res) => {
 // ── Create slot ─────────────────────────────────────────────────────────────
 
 router.post('/api/slots', (req, res) => {
-  const { date, start_time, duration_minutes, notes } = req.body;
+  const { date, start_time, end_time, duration_minutes, notes } = req.body;
   if (!date || !start_time || !duration_minutes) {
     return res.status(400).json({ error: 'date, start_time, and duration_minutes are required' });
   }
 
   const result = db.prepare(
-    'INSERT INTO slots (date, start_time, duration_minutes, notes) VALUES (?, ?, ?, ?)'
-  ).run(date, start_time, parseInt(duration_minutes, 10), notes || null);
+    'INSERT INTO slots (date, start_time, end_time, duration_minutes, notes) VALUES (?, ?, ?, ?, ?)'
+  ).run(date, start_time, end_time || null, parseInt(duration_minutes, 10), notes || null);
 
   res.status(201).json({ id: result.lastInsertRowid });
 });
@@ -48,15 +48,15 @@ router.post('/api/slots', (req, res) => {
 // ── Edit slot ───────────────────────────────────────────────────────────────
 
 router.put('/api/slots/:id', (req, res) => {
-  const { date, start_time, duration_minutes, notes } = req.body;
+  const { date, start_time, end_time, duration_minutes, notes } = req.body;
   const slotId = parseInt(req.params.id, 10);
 
   const slot = db.prepare('SELECT id FROM slots WHERE id = ?').get(slotId);
   if (!slot) return res.status(404).json({ error: 'Slot not found' });
 
   db.prepare(
-    'UPDATE slots SET date = ?, start_time = ?, duration_minutes = ?, notes = ? WHERE id = ?'
-  ).run(date, start_time, parseInt(duration_minutes, 10), notes || null, slotId);
+    'UPDATE slots SET date = ?, start_time = ?, end_time = ?, duration_minutes = ?, notes = ? WHERE id = ?'
+  ).run(date, start_time, end_time || null, parseInt(duration_minutes, 10), notes || null, slotId);
 
   res.json({ ok: true });
 });
@@ -87,6 +87,7 @@ router.get('/api/slots/:id/applicants', (req, res) => {
       a.id AS application_id,
       a.status,
       a.applied_at,
+      a.proposed_time,
       o.id AS owner_id,
       o.name,
       o.phone,

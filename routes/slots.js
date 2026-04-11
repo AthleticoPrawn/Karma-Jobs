@@ -64,10 +64,12 @@ router.post('/api/slots/:id/apply', requireOwner, (req, res) => {
     return res.status(409).json({ error: 'This slot has already been filled' });
   }
 
+  const { proposed_time } = req.body || {};
+
   try {
     db.prepare(
-      'INSERT INTO applications (slot_id, owner_id) VALUES (?, ?)'
-    ).run(slotId, req.session.ownerId);
+      'INSERT INTO applications (slot_id, owner_id, proposed_time) VALUES (?, ?, ?)'
+    ).run(slotId, req.session.ownerId, proposed_time || null);
     res.json({ ok: true });
   } catch (err) {
     if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {

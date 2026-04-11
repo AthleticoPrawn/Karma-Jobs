@@ -33,11 +33,16 @@
               <input type="date" id="slot-date" required>
             </div>
             <div class="field">
-              <label for="slot-time">Start time</label>
+              <label for="slot-time">From</label>
               <input type="time" id="slot-time" required>
             </div>
             <div class="field">
-              <label for="slot-duration">Duration</label>
+              <label for="slot-end-time">To <span class="optional">(optional)</span></label>
+              <input type="time" id="slot-end-time">
+              <small>Leave blank for a fixed start time</small>
+            </div>
+            <div class="field">
+              <label for="slot-duration">Walk duration</label>
               <select id="slot-duration">
                 <option value="30">30 min</option>
                 <option value="45">45 min</option>

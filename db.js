@@ -24,6 +24,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date TEXT NOT NULL,
     start_time TEXT NOT NULL,
+    end_time TEXT,
     duration_minutes INTEGER NOT NULL,
     notes TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -33,10 +34,15 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slot_id INTEGER NOT NULL REFERENCES slots(id) ON DELETE CASCADE,
     owner_id INTEGER NOT NULL REFERENCES owners(id) ON DELETE CASCADE,
+    proposed_time TEXT,
     status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'confirmed', 'declined')),
     applied_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(slot_id, owner_id)
   );
 `);
+
+// Migrations for existing databases
+try { db.exec('ALTER TABLE slots ADD COLUMN end_time TEXT'); } catch {}
+try { db.exec('ALTER TABLE applications ADD COLUMN proposed_time TEXT'); } catch {}
 
 module.exports = db;

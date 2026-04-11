@@ -89,6 +89,7 @@ function renderApplicants(slot, applicants) {
             <span>🐶 ${escHtml(app.dog_name)}</span>
             <span>📍 ${escHtml(app.address)}</span>
             <span>📞 <a href="tel:${escHtml(app.phone)}">${escHtml(app.phone)}</a></span>
+            ${app.proposed_time ? `<span>🕐 Prefers ${formatTime(app.proposed_time)}</span>` : ''}
           </div>
           <div class="applicant-meta">Applied: ${new Date(app.applied_at).toLocaleString('en-GB')}</div>
         </div>

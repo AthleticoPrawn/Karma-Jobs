@@ -96,11 +96,15 @@ function renderSlotCard(slot) {
       </button>`;
   }
 
+  const timeDisplay = slot.end_time
+    ? `${formatTime(slot.start_time)} – ${formatTime(slot.end_time)}`
+    : formatTime(slot.start_time);
+
   return `
-    <div class="slot-card" id="slot-${slot.id}">
+    <div class="slot-card" id="slot-${slot.id}" data-start-time="${slot.start_time}" data-end-time="${slot.end_time || ''}">
       <div class="slot-info">
         <div class="slot-datetime">
-          <span class="slot-time-big">${formatTime(slot.start_time)}</span>
+          <span class="slot-time-big">${timeDisplay}</span>
           <span class="slot-duration">${slot.duration_minutes} min walk</span>
         </div>
         ${slot.notes ? `<p class="slot-notes">${escHtml(slot.notes)}</p>` : ''}
@@ -119,25 +123,35 @@ document.addEventListener('click', async (e) => {
 
   const slotId = btn.dataset.slotId;
 
-  if (currentUser.isOwner) {
-    // Already identified — apply directly
-    await doApply(slotId);
-  } else {
-    // Not identified — show inline form in place of the button
-    showIdentifyForm(slotId);
-  }
+  // Always show the form — identified users just see a shorter version
+  showIdentifyForm(slotId);
 });
 
 function showIdentifyForm(slotId) {
   const actionDiv = document.getElementById(`action-${slotId}`);
+  const slotCard = document.getElementById(`slot-${slotId}`);
+  const hasRange = slotCard.querySelector('.slot-time-big').textContent.includes('–');
+
+  // Get the time range from the slot card to show in the prompt
+  const timeRangeText = slotCard.querySelector('.slot-time-big').textContent.trim();
+
+  const identityFields = currentUser.isOwner ? '' : `
+    <input type="text"  name="name"     placeholder="Your name"       required autocomplete="name">
+    <input type="tel"   name="phone"    placeholder="Phone number"    required autocomplete="tel">
+    <input type="text"  name="dog_name" placeholder="Dog's name"      required>
+    <input type="text"  name="address"  placeholder="Rough area (e.g. Chorlton, M21)" required>`;
+
+  const introText = currentUser.isOwner
+    ? (hasRange ? `What time works best for you within the ${timeRangeText} window?` : 'Confirm your application:')
+    : 'Just a few details so we know whose dog we\'re walking:';
+
   actionDiv.innerHTML = `
     <form class="identify-form" data-slot-id="${slotId}" novalidate>
-      <p class="identify-intro">Just a few details so we know whose dog we're walking:</p>
+      <p class="identify-intro">${introText}</p>
       <div class="identify-fields">
-        <input type="text"  name="name"     placeholder="Your name"       required autocomplete="name">
-        <input type="tel"   name="phone"    placeholder="Phone number"    required autocomplete="tel">
-        <input type="text"  name="dog_name" placeholder="Dog's name"      required>
-        <input type="text"  name="address"  placeholder="Rough area (e.g. Chorlton, M21)" required>
+        ${identityFields}
+        ${hasRange ? `<input type="time" name="proposed_time" required min="${slotCard.dataset.startTime}" max="${slotCard.dataset.endTime}">
+        <small class="identify-time-hint">Your preferred start time</small>` : ''}
       </div>
       <div class="identify-error hidden"></div>
       <div class="identify-actions">
@@ -172,44 +186,49 @@ document.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
   submitBtn.textContent = 'Applying…';
 
-  const payload = {
-    name:     form.querySelector('[name="name"]').value.trim(),
-    phone:    form.querySelector('[name="phone"]').value.trim(),
-    dog_name: form.querySelector('[name="dog_name"]').value.trim(),
-    address:  form.querySelector('[name="address"]').value.trim()
-  };
+  const proposedTimeEl = form.querySelector('[name="proposed_time"]');
+  const proposedTime = proposedTimeEl ? proposedTimeEl.value : null;
 
   try {
-    // Step 1: identify
-    const idRes = await fetch('/api/identify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const idData = await idRes.json();
+    if (!currentUser.isOwner) {
+      // Step 1: identify (new or returning visitor)
+      const payload = {
+        name:     form.querySelector('[name="name"]').value.trim(),
+        phone:    form.querySelector('[name="phone"]').value.trim(),
+        dog_name: form.querySelector('[name="dog_name"]').value.trim(),
+        address:  form.querySelector('[name="address"]').value.trim()
+      };
 
-    if (!idRes.ok) {
-      errorDiv.textContent = idData.error || 'Something went wrong';
-      errorDiv.classList.remove('hidden');
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Apply';
-      return;
+      const idRes = await fetch('/api/identify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const idData = await idRes.json();
+
+      if (!idRes.ok) {
+        errorDiv.textContent = idData.error || 'Something went wrong';
+        errorDiv.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Apply';
+        return;
+      }
+
+      // Update local state so other apply buttons work without re-identifying
+      currentUser.isOwner = true;
+      currentUser.ownerName = payload.name;
+      navArea.innerHTML = `
+        <span class="nav-label">Hi, ${escHtml(payload.name)}</span>
+        <a href="/my-applications" class="btn btn-ghost btn-sm">My applications</a>
+        <button id="logout-btn" class="btn btn-ghost btn-sm">Log out</button>`;
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.reload();
+      });
     }
 
-    // Update local state so other apply buttons work without re-identifying
-    currentUser.isOwner = true;
-    currentUser.ownerName = payload.name;
-    navArea.innerHTML = `
-      <span class="nav-label">Hi, ${escHtml(payload.name)}</span>
-      <a href="/my-applications" class="btn btn-ghost btn-sm">My applications</a>
-      <button id="logout-btn" class="btn btn-ghost btn-sm">Log out</button>`;
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-      await fetch('/api/logout', { method: 'POST' });
-      window.location.reload();
-    });
-
-    // Step 2: apply
-    await doApply(slotId);
+    // Step 2: apply (with optional proposed time)
+    await doApply(slotId, proposedTime);
   } catch {
     errorDiv.textContent = 'Network error — please try again';
     errorDiv.classList.remove('hidden');
@@ -218,12 +237,16 @@ document.addEventListener('submit', async (e) => {
   }
 });
 
-async function doApply(slotId) {
+async function doApply(slotId, proposedTime) {
   const actionDiv = document.getElementById(`action-${slotId}`);
   actionDiv.innerHTML = `<span class="badge badge-yellow">Applying…</span>`;
 
   try {
-    const res = await fetch(`/api/slots/${slotId}/apply`, { method: 'POST' });
+    const res = await fetch(`/api/slots/${slotId}/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposed_time: proposedTime || null })
+    });
     const data = await res.json();
 
     if (res.ok) {
