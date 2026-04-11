@@ -134,6 +134,7 @@ function renderSlots(slots) {
           </div>
           <div class="slot-actions">
             <button class="btn btn-ghost btn-sm" onclick="editSlot(${slot.id}, '${slot.date}', '${slot.start_time}', '${slot.end_time || ''}', ${slot.duration_minutes}, ${JSON.stringify(escHtml(slot.notes || ''))})">Edit</button>
+            <button class="btn btn-ghost btn-sm" onclick="cloneSlot('${slot.date}', '${slot.start_time}', '${slot.end_time || ''}', ${slot.duration_minutes}, ${JSON.stringify(escHtml(slot.notes || ''))})">Clone</button>
             <button class="btn btn-danger btn-sm" onclick="deleteSlot(${slot.id})">Delete</button>
           </div>
         </div>`;
@@ -160,6 +161,23 @@ window.editSlot = function(id, date, startTime, endTime, duration, notes) {
   document.getElementById('slot-notes').value = notes;
   slotFormError.classList.add('hidden');
   slotFormWrap.classList.remove('hidden');
+  slotFormWrap.scrollIntoView({ behavior: 'smooth' });
+};
+
+// ── Clone slot ──────────────────────────────────────────────────────────────
+
+window.cloneSlot = function(date, startTime, endTime, duration, notes) {
+  slotFormTitle.textContent = 'New slot (cloned)';
+  slotFormSubmit.textContent = 'Create slot';
+  editSlotId.value = ''; // no ID = create new
+  document.getElementById('slot-date').value = date;
+  document.getElementById('slot-time').value = startTime;
+  document.getElementById('slot-end-time').value = endTime;
+  document.getElementById('slot-duration').value = duration;
+  document.getElementById('slot-notes').value = notes;
+  slotFormError.classList.add('hidden');
+  slotFormWrap.classList.remove('hidden');
+  document.getElementById('slot-date').focus();
   slotFormWrap.scrollIntoView({ behavior: 'smooth' });
 };
 
